@@ -9,8 +9,8 @@
 	export let postList;
 	//export let updatePost;
 	//export let toggleLikePost;
-    $: editing = false;
-    let displayComments = false;
+	$: editing = false;
+	let displayComments = false;
 	let commentsList = [];
 
 	export async function deletePost(post) {
@@ -53,7 +53,7 @@
 				throw new Error('Network response was not ok');
 			}
 
-			const updatedPost = await response.json();//Receive updated post object as response
+			const updatedPost = await response.json(); //Receive updated post object as response
 
 			//Version with updating just post.is_liked in a store, instead of entire post
 
@@ -61,7 +61,7 @@
 			//	allPosts.map((p) => (p.id === post.id ? { ...p, is_liked: !p.is_liked } : p))
 			//);
 
-            //Version with updating entire post object (may trigger comments refetching as well)
+			//Version with updating entire post object (may trigger comments refetching as well)
 
 			postList.update((allPosts) =>
 				allPosts.map((p) => (p.id === updatedPost.id ? updatedPost : p))
@@ -93,7 +93,7 @@
 			}
 
 			commentsList = await response.json();
-            updateCommentsCountOfPost(commentsList);
+			updateCommentsCountOfPost(commentsList);
 			notifier.notify('Success', 'Comments fetched successfuly', 'Success');
 		} catch (error) {
 			notifier.notify('Error', error.message, 'Error');
@@ -101,14 +101,12 @@
 		}
 	}
 
-    function updateCommentsCountOfPost(listOfComments){
-        /** This is helper function to update comments count on Post object when refetching comments (after comment delete/create), but without need of refetching entire Post*/
-        postList.update(allPosts =>
-		allPosts.map(p =>
-			p.id === post.id ? { ...p, comments_count: listOfComments.length } : p
-		));
-
-    }
+	function updateCommentsCountOfPost(listOfComments) {
+		/** This is helper function to update comments count on Post object when refetching comments (after comment delete/create), but without need of refetching entire Post*/
+		postList.update((allPosts) =>
+			allPosts.map((p) => (p.id === post.id ? { ...p, comments_count: listOfComments.length } : p))
+		);
+	}
 	function showComments() {
 		//Fetch new comments only when displaying comments list, not on closing it
 		if (!displayComments) {
@@ -118,10 +116,10 @@
 		displayComments = !displayComments;
 	}
 
-    function toggleEditing(){
-        //Its function so I can pass it to child component PostEditing
-        editing = !editing;
-    }
+	function toggleEditing() {
+		//Its function so I can pass it to child component PostEditing
+		editing = !editing;
+	}
 
 	onMount(() => {
 		fetchCommentsOfPost();
@@ -152,9 +150,16 @@
 			<!-- Include PostEditing component when editing is true -->
 			<PostEditing {post} {postList} {toggleEditing} />
 		{:else}
-			<h5 class="text-xl font-semibold mb-3">{post.title}</h5>
+		<h5 class="text-xl font-semibold mb-1">{post.title}</h5> <!-- reduce bottom margin -->
+		{#if post.tags && post.tags.length}
+		  <div class="tags mb-0"> <!-- reduce bottom margin -->
+			{#each post.tags as tag}
+			  <span class="chip">#{tag}</span>
+			{/each}
+		  </div>
+		{/if}
 
-			<p class="mb-0">{post.content}</p>
+			<p class="mt-4 mb-0">{post.content}</p>
 
 			{#if post.images}
 				<div class="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -214,4 +219,21 @@
 	.like-btn span {
 		color: red;
 	}
+
+	.tags {
+    display: flex; /* Align tags in a row */
+    flex-wrap: wrap; /* Allow wrapping if many tags */
+    align-items: center; /* Center align the chips vertically */
+    gap: 4px; /* This creates a small space between the chips */
+    margin: 0; /* Remove any default margins */
+    padding: 0; /* Remove any default padding */
+  }
+
+  .chip {
+    padding: 2px 6px; /* Reduced padding for a smaller chip */
+    background-color: #d0d0d0; /* Darker grey background */
+    border-radius: 4px; /* Less rounded corners */
+    font-size: 0.75em; /* Smaller text */
+    line-height: normal; /* Default line height */
+  }
 </style>
